@@ -12,11 +12,10 @@ import java.io.IOException;
 
 public abstract class AppEngineSdkResolver {
     /**
-     *
-     * @param version
-     * @param cacheDir
+     * Returns the App Engine SDK directory.
+     * @param cacheDir cache directory that may already contain the SDK
      * @return unpacked SDK directory
-     * @throws IOException
+     * @throws IOException on I/O failure
      */
     public abstract File resolve(File cacheDir) throws IOException;
 

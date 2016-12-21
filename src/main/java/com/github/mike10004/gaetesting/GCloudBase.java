@@ -70,27 +70,27 @@ public abstract class GCloudBase {
     /**
      * gcloud installation gcloud_directory
      *
-     * @parameter expression="${gcloud.gcloud_directory}"
+     * <code>@parameter expression="${gcloud.gcloud_directory}"</code>
      */
     protected String gcloud_directory;
 
     /**
      * docker_host
      *
-     * @parameter expression="${gcloud.docker_host}" default-value="ENV_or_default"
+     * <code>@parameter expression="${gcloud.docker_host}" default-value="ENV_or_default"</code>
      */
     protected String docker_host = "ENV_or_default";
     /**
      * docker_tls_verify
      *
-     * @parameter expression="${gcloud.docker_tls_verify}" default-value="ENV_or_default"
+     * <code>@parameter expression="${gcloud.docker_tls_verify}" default-value="ENV_or_default"</code>
      */
     protected String docker_tls_verify = "ENV_or_default";
 
     /**
      * docker_host_cert_path
      *
-     * @parameter expression="${gcloud.docker_cert_path}" default-value="ENV_or_default"
+     * <code>@parameter expression="${gcloud.docker_cert_path}" default-value="ENV_or_default"</code>
      */
     protected String docker_cert_path = "ENV_or_default";
 
@@ -99,14 +99,14 @@ public abstract class GCloudBase {
      * logging verbosity level: [debug, info, warning, error, critical, none]
      * (Default: [info]).
      *
-     * @parameter expression="${gcloud.verbosity}"
+     * <code>@parameter expression="${gcloud.verbosity}"</code>
      */
     protected String verbosity = "info";
 
     /**
      * Google Cloud Platform gcloud_project to use for this invocation.
      *
-     * @parameter expression="${gcloud.gcloud_project}"
+     * <code>@parameter expression="${gcloud.gcloud_project}"</code>
      */
     protected String gcloud_project;
 
@@ -114,21 +114,21 @@ public abstract class GCloudBase {
      * version The version of the app that will be created or replaced by this
      * deployment.
      *
-     * @parameter expression="${gcloud.version}"
+     * <code>@parameter expression="${gcloud.version}"</code>
      */
     protected String version;
 
     /**
      * Quiet mode, if true does not ask to perform the action.
      *
-     * @parameter expression="${gcloud.quiet}" default-value="true"
+     * <code>@parameter expression="${gcloud.quiet}" default-value="true"</code>
      */
     protected boolean quiet = true;
 
     /**
      * The location of the appengine application to run.
      *
-     * @parameter expression="${gcloud.application_directory}"
+     * <code>@parameter expression="${gcloud.application_directory}"</code>
      */
     protected final @NotNull String application_directory;
 
@@ -136,7 +136,7 @@ public abstract class GCloudBase {
     /**
      * Use this option if you are deploying using a remote docker host.
      *
-     * @parameter expression="${gcloud.remote}"
+     * <code>@parameter expression="${gcloud.remote}"</code>
      */
     protected boolean remote;
 
@@ -145,7 +145,7 @@ public abstract class GCloudBase {
      * To perform a local build, you must have your local docker environment
      * configured correctly.
      *
-     * @parameter expression="${gcloud.docker_build}"
+     * <code>@parameter expression="${gcloud.docker_build}"</code>
      */
     protected String docker_build;
 
@@ -153,7 +153,7 @@ public abstract class GCloudBase {
      * The directory for the Staging phase. It has to be under target/ and is deleted
      * at each run or deploy command.
      *
-     * @parameter expression="${gcloud.staging_directory}" default-value="${project.build.directory}/appengine-staging"
+     * <code>@parameter expression="${gcloud.staging_directory}" default-value="${project.build.directory}/appengine-staging"</code>
      */
     protected final @NotNull String staging_directory;
 
@@ -163,7 +163,7 @@ public abstract class GCloudBase {
      'python', 'custom', 'python-compat', 'java7',
      'python27', 'go']. (default: )
      *
-     * @parameter expression="${gcloud.runtime}"
+     * <code>@parameter expression="${gcloud.runtime}"</code>
      */
 
     protected String runtime;
@@ -171,7 +171,7 @@ public abstract class GCloudBase {
     /**
      * server The App Engine server to connect to.
      *
-     * @parameter expression="${gcloud.server}"
+     * <code>@parameter expression="${gcloud.server}"</code>
      */
     protected String server;
 
@@ -179,7 +179,7 @@ public abstract class GCloudBase {
      * force Force deploying, overriding any previous in-progress deployments to
      * this version.
      *
-     * @parameter expression="${gcloud.force}"
+     * <code>@parameter expression="${gcloud.force}"</code>
      */
     protected boolean force;
 
@@ -187,45 +187,45 @@ public abstract class GCloudBase {
      * Set the encoding to be used when compiling Java source files (default
      * "UTF-8")
      *
-     * @parameter expression="${gcloud.compile_encoding}"
+     * <code>@parameter expression="${gcloud.compile_encoding}"</code>
      */
     protected String compile_encoding;
     /**
      * Delete the JSP source files after compilation
      *
-     * @parameter expression="${gcloud.delete_jsps}"
+     * <code>@parameter expression="${gcloud.delete_jsps}"</code>
      */
     protected boolean delete_jsps;
     /**
      * Do not jar the classes generated from JSPs
      *
-     * @parameter expression="${gcloud.disable_jar_jsps}"
+     * <code>@parameter expression="${gcloud.disable_jar_jsps}"</code>
      */
     protected boolean disable_jar_jsps;
     /**
      * Jar the WEB-INF/classes content
      *
-     * @parameter expression="${gcloud.enable_jar_classes}"
+     * <code>@parameter expression="${gcloud.enable_jar_classes}"</code>
      */
     protected boolean enable_jar_classes;
     /**
-     * Split large jar files (> 32M) into smaller fragments
+     * Split large jar files (&gt; 32M) into smaller fragments
      *
-     * @parameter expression="${gcloud.enable_jar_splitting}"
+     * <code>@parameter expression="${gcloud.enable_jar_splitting}"</code>
      */
     protected boolean enable_jar_splitting;
     /**
      * Do not use symbolic links when making the temporary (staging)
      * gcloud_directory used in uploading Java apps
      *
-     * @parameter expression="${gcloud.no_symlinks}"
+     * <code>@parameter expression="${gcloud.no_symlinks}"</code>
      */
     protected boolean no_symlinks;
     /**
      * Do not delete temporary (staging) gcloud_directory used in uploading Java
      * apps
      *
-     * @parameter expression="${gcloud.retain_upload_dir}"
+     * <code>@parameter expression="${gcloud.retain_upload_dir}"</code>
      */
     protected boolean retain_upload_dir;
     /**
@@ -234,7 +234,7 @@ public abstract class GCloudBase {
      * ends with one of the suffixes will not be included in the split jar
      * fragments
      *
-     * @parameter expression="${gcloud.jar_splitting_excludes}"
+     * <code>@parameter expression="${gcloud.jar_splitting_excludes}"</code>
      */
     protected String jar_splitting_excludes;
 
@@ -248,7 +248,7 @@ public abstract class GCloudBase {
     /**
      * Directory containing the App Engine app.yaml/Dockerfile files.
      *
-     * @parameter expression="${gcloud.appengine_config_directory}"
+     * <code>@parameter expression="${gcloud.appengine_config_directory}"</code>
      * default-value="${project.basedir}/src/main/appengine"
      */
     protected String appengine_config_directory;

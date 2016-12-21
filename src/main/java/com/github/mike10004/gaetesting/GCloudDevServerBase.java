@@ -14,9 +14,6 @@ import java.util.List;
  * Runs the App Engine development server.
  *
  * @author Ludo
- * @goal run
- * @execute phase="package"
- * @threadSafe false
  */
 @SuppressWarnings("unused")
 public abstract class GCloudDevServerBase extends GCloudBase {
@@ -29,14 +26,14 @@ public abstract class GCloudDevServerBase extends GCloudBase {
      * The host and port on which to start the API server (in the format
      * host:port)
      *
-     * @parameter expression="${gcloud.api_host}"
+     * <code>@parameter expression="${gcloud.api_host}"</code>
      */
     private String api_host;
 
     /**
      * Additional directories containing App Engine modules to be run.
      *
-     * @parameter
+     * <code>@parameter</code>
      */
     private List<String> modules;
 
@@ -44,7 +41,7 @@ public abstract class GCloudDevServerBase extends GCloudBase {
      * The host and port on which to start the local web server (in the format
      * host:port)
      *
-     * @parameter expression="${gcloud.host}"
+     * <code>@parameter expression="${gcloud.host}"</code>
      */
     private String host;
 
@@ -52,7 +49,7 @@ public abstract class GCloudDevServerBase extends GCloudBase {
      * The host and port on which to start the admin server (in the format
      * host:port)
      *
-     * @parameter expression="${gcloud.admin_host}"
+     * <code>@parameter expression="${gcloud.admin_host}"</code>
      */
     private String admin_host;
 
@@ -61,7 +58,7 @@ public abstract class GCloudDevServerBase extends GCloudBase {
      * specific kinds of data using --datastore-path, --blobstore-path, and/or
      * --logs-path
      *
-     * @parameter expression="${gcloud.storage_path}"
+     * <code>@parameter expression="${gcloud.storage_path}"</code>
      */
     private String storage_path;
 
@@ -70,20 +67,20 @@ public abstract class GCloudDevServerBase extends GCloudBase {
      * terminal. (debug, info, warning, critical, error) Defaults to current
      * verbosity setting.
      *
-     * @parameter expression="${gcloud.log_level}"
+     * <code>@parameter expression="${gcloud.log_level}"</code>
      */
     private String log_level;
     /**
      * Path to a file used to store request logs (defaults to a file in
      * --storage-path if not set)
      *
-     * @parameter expression="${gcloud.logs_path}"
+     * <code>@parameter expression="${gcloud.logs_path}"</code>
      */
     private String logs_path;
     /**
      * name of the authorization domain to use (default: gmail.com)
      *
-     * @parameter expression="${gcloud.auth_domain}"
+     * <code>@parameter expression="${gcloud.auth_domain}"</code>
      */
     private String auth_domain;
 
@@ -93,7 +90,7 @@ public abstract class GCloudDevServerBase extends GCloudBase {
      * are limited to that number of instances or a comma-separated list of
      * module:max_instances e.g. "default:5,backend:3" (default: None)
      *
-     * @parameter expression="${gcloud.max_module_instances}"
+     * <code>@parameter expression="${gcloud.max_module_instances}"</code>
      */
     private String max_module_instances;
 
@@ -101,7 +98,7 @@ public abstract class GCloudDevServerBase extends GCloudBase {
      * email address associated with a service account that has a downloadable
      * key. May be None for no local application identity. (default: None)
      *
-     * @parameter expression="${gcloud.appidentity_email_address}"
+     * <code>@parameter expression="${gcloud.appidentity_email_address}"</code>
      */
     private String appidentity_email_address;
 
@@ -110,7 +107,7 @@ public abstract class GCloudDevServerBase extends GCloudBase {
      * Must be set if appidentity_email_address is set. (default: None)
      *
      *
-     * @parameter expression="${gcloud.appidentity_private_key_path}"
+     * <code>@parameter expression="${gcloud.appidentity_private_key_path}"</code>
      */
     private String appidentity_private_key_path;
 
@@ -118,7 +115,7 @@ public abstract class GCloudDevServerBase extends GCloudBase {
      * path to gcloud_directory used to store blob contents (defaults to a
      * subdirectory of --storage_path if not set) (default: None)
      *
-     * @parameter expression="${gcloud.blobstore_path}"
+     * <code>@parameter expression="${gcloud.blobstore_path}"</code>
      */
     private String blobstore_path;
 
@@ -126,14 +123,14 @@ public abstract class GCloudDevServerBase extends GCloudBase {
      * path to a file used to store datastore contents (defaults to a file in
      * --storage_path if not set) (default: None)
      *
-     * @parameter expression="${gcloud.datastore_path}"
+     * <code>@parameter expression="${gcloud.datastore_path}"</code>
      */
     private String datastore_path;
     /**
      * clear the datastore on startup (default: False)
      *
      *
-     * @parameter expression="${gcloud.clear_datastore}"
+     * <code>@parameter expression="${gcloud.clear_datastore}"</code>
      */
     private boolean clear_datastore;
 
@@ -141,7 +138,7 @@ public abstract class GCloudDevServerBase extends GCloudBase {
      * make files specified in the app.yaml "skip_files" or "static" handles
      * readable by the application. (default: False)
      *
-     * @parameter expression="${gcloud.allow_skipped_files}"
+     * <code>@parameter expression="${gcloud.allow_skipped_files}"</code>
      */
     private boolean allow_skipped_files;
 
@@ -149,7 +146,7 @@ public abstract class GCloudDevServerBase extends GCloudBase {
      * Enable logs collection and display in local Admin Console for Managed VM
      * modules.
      *
-     * @parameter expression="${gcloud.enable_mvm_logs}"
+     * <code>@parameter expression="${gcloud.enable_mvm_logs}"</code>
      */
     private boolean enable_mvm_logs;
 
@@ -157,14 +154,14 @@ public abstract class GCloudDevServerBase extends GCloudBase {
      * Use the "sendmail" tool to transmit e-mail sent using the Mail API (ignored
      * if --smtp-host is set)
      *
-     * @parameter expression="${gcloud.enable_sendmail}"
+     * <code>@parameter expression="${gcloud.enable_sendmail}"</code>
      */
     private boolean enable_sendmail;
     /**
      * Use mtime polling for detecting source code changes - useful if modifying
      * code from a remote machine using a distributed file system
      *
-     * @parameter expression="${gcloud.use_mtime_file_watcher}"
+     * <code>@parameter expression="${gcloud.use_mtime_file_watcher}"</code>
      */
     private boolean use_mtime_file_watcher;
     /**
@@ -173,20 +170,20 @@ public abstract class GCloudDevServerBase extends GCloudBase {
      * &lt;jvm_flag&gt; &lt;param&gt;-Xmx1024m&lt;/param&gt;
      * &lt;param&gt;-Xms256m&lt;/param&gt; &lt;/jvm_flag&gt;.
      *
-     * @parameter
+     * <code>@parameter</code>
      */
     private List<String> jvm_flag;
 
     /**
      * default Google Cloud Storage bucket name (default: None)
      *
-     * @parameter expression="${gcloud.default_gcs_bucket_name}"
+     * <code>@parameter expression="${gcloud.default_gcs_bucket_name}"</code>
      */
     private String default_gcs_bucket_name;
     /**
      * enable_cloud_datastore
      *
-     * @parameter expression="${gcloud.enable_cloud_datastore}"
+     * <code>@parameter expression="${gcloud.enable_cloud_datastore}"</code>
      */
     private boolean enable_cloud_datastore;
 
@@ -194,62 +191,62 @@ public abstract class GCloudDevServerBase extends GCloudBase {
      * datastore_consistency_policy The policy to apply when deciding whether a
      * datastore write should appear in global queries (default="time")
      *
-     * @parameter expression="${gcloud.datastore_consistency_policy}"
+     * <code>@parameter expression="${gcloud.datastore_consistency_policy}"</code>
      */
     private String datastore_consistency_policy;
 
     /**
      * The full path to the PHP executable to use to run your PHP module
      *
-     * @parameter expression="${gcloud.php_executable_path}"
+     * <code>@parameter expression="${gcloud.php_executable_path}"</code>
      */
     private String php_executable_path;
     /**
      * The script to run at the startup of new Python runtime instances (useful
      * for tools such as debuggers)
      *
-     * @parameter expression="${gcloud.python_startup_script}"
+     * <code>@parameter expression="${gcloud.python_startup_script}"</code>
      */
     private String python_startup_script;
     /**
      * Generate an error on datastore queries that require a composite index not
      * found in index.yaml
      *
-     * @parameter expression="${gcloud.require_indexes}"
+     * <code>@parameter expression="${gcloud.require_indexes}"</code>
      */
     private boolean require_indexes;
     /**
      * Logs the contents of e-mails sent using the Mail API
      *
-     * @parameter expression="${gcloud.show_mail_body}"
+     * <code>@parameter expression="${gcloud.show_mail_body}"</code>
      */
     private boolean show_mail_body;
     /**
      * Allow TLS to be used when the SMTP server announces TLS support (ignored if
      * --smtp-host is not set)
      *
-     * @parameter expression="${gcloud.smtp_allow_tls}"
+     * <code>@parameter expression="${gcloud.smtp_allow_tls}"</code>
      */
     private boolean smtp_allow_tls;
     /**
      * The host and port of an SMTP server to use to transmit e-mail sent using
      * the Mail API, in the format host:port
      *
-     * @parameter expression="${gcloud.smtp_host}"
+     * <code>@parameter expression="${gcloud.smtp_host}"</code>
      */
     private String smtp_host;
     /**
      * Password to use when connecting to the SMTP server specified with
      * --smtp-host
      *
-     * @parameter expression="${gcloud.smtp_password}"
+     * <code>@parameter expression="${gcloud.smtp_password}"</code>
      */
     private String smtp_password;
     /**
      * Username to use when connecting to the SMTP server specified with
      * --smtp-host
      *
-     * @parameter expression="${gcloud.smtp_user}"
+     * <code>@parameter expression="${gcloud.smtp_user}"</code>
      */
     private String smtp_user;
 
@@ -259,7 +256,7 @@ public abstract class GCloudDevServerBase extends GCloudBase {
      * to pass the port number in as an argument. For instance:
      * --custom_entrypoint="gunicorn -b localhost:{port} mymodule:application"
      *
-     * @parameter expression="${gcloud.custom_entrypoint}"
+     * <code>@parameter expression="${gcloud.custom_entrypoint}"</code>
      */
 
     private String custom_entrypoint;

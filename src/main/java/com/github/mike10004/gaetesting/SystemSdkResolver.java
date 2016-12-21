@@ -32,11 +32,10 @@ public abstract class SystemSdkResolver extends AppEngineSdkResolver {
     }
 
     /**
-     *
-     * @param version
-     * @param cacheDir
+     * Resolve the App Engine SDK, possibly downloading it.
+     * @param cacheDir the cache dir
      * @return unpacked SDK directory
-     * @throws IOException
+     * @throws IOException on I/O failures
      */
     @Override
     public File resolve(File cacheDir) throws IOException {
@@ -92,17 +91,16 @@ public abstract class SystemSdkResolver extends AppEngineSdkResolver {
      * @param uri the remote URL
      * @param downloadDestination directory in which the file at the given URL is to be downloaded
      * @return pathname of SDK archive
-     * @throws IOException
+     * @throws IOException on I/O failures
      */
     protected abstract File downloadRemoteFile(URI uri, File downloadDestination) throws IOException;
 
     /**
-     *
-     * @param version
-     * @param uri
-     * @param downloadDestination
+     * Resolves the SDK archive file, possibly downloading it to a given directory.
+     * @param uri the URL of the archive file
+     * @param downloadDestination the directory that should contain any downloaded files
      * @return pathname of sdk directory (unpacked)
-     * @throws IOException
+     * @throws IOException on I/O failures
      */
     protected File resolveSdkArchive(URI uri, File downloadDestination) throws IOException {
         File sdkArchive;
@@ -123,7 +121,7 @@ public abstract class SystemSdkResolver extends AppEngineSdkResolver {
      * Unpacks an SDK archive zip into the directory containing the zip.
      * @param sdkArchive the zip file
      * @return the directory containing the files unpacked from the archive
-     * @throws IOException
+     * @throws IOException on I/O failures
      */
     protected static File unpackSdk(File sdkArchive) throws IOException {
         File sdkRepoDir = sdkArchive.getParentFile();
