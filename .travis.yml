@@ -5,7 +5,7 @@ addons:
     - google-cloud-sdk
 language: java
 jdk:
-  - oraclejdk8
+  - oraclejdk7
 before_install:
   - sudo mkdir -p /usr/local/share/google
   - sudo ln -sv /usr/lib/google-cloud-sdk /usr/local/share/google/google-cloud-sdk
