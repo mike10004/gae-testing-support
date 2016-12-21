@@ -474,4 +474,8 @@ public abstract class GCloudDevServerBase extends GCloudBase {
     public String getApplication_directory() {
         return application_directory;
     }
+
+    public List<String> getJvm_flag() {
+        return jvm_flag;
+    }
 }
