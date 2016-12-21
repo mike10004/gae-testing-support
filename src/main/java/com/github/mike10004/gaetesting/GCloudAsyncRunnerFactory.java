@@ -1,6 +1,8 @@
 package com.github.mike10004.gaetesting;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.net.HostAndPort;
@@ -86,7 +88,31 @@ public abstract class GCloudAsyncRunnerFactory {
             this.applicationDirectorySupplier = checkNotNull(applicationDirectorySupplier);
         }
 
-        public GCloudAsyncRunnerFactory build() {
+        public <T> T build(Function<Builder, T> transform) {
+            return transform.apply(this);
+        }
+
+        public GCloudAsyncRunnerFactory factory() {
+            return build(factoryTransform);
+        }
+
+        public DevServerRule rule() {
+            return build(new Function<Builder, DevServerRule>() {
+                @Override
+                public DevServerRule apply(Builder input) {
+                    return new DevServerRule(input.makeFactory());
+                }
+            });
+        }
+
+        private static final Function<Builder, GCloudAsyncRunnerFactory> factoryTransform = new Function<Builder, GCloudAsyncRunnerFactory>() {
+            @Override
+            public GCloudAsyncRunnerFactory apply(Builder b) {
+                return b.makeFactory();
+            }
+        };
+
+        private GCloudAsyncRunnerFactory makeFactory() {
             if (appengineSdkResolver == null) {
                 appengineSdkResolver = AppEngineSdkResolver.systemHttpClientResolver(getAppEngineTargetVersion());
             }

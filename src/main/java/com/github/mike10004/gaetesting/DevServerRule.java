@@ -31,6 +31,10 @@ public class DevServerRule extends ExternalResource {
         this.asyncRunnerFactory = checkNotNull(asyncRunnerFactory, "asyncRunnerFactory");
     }
 
+    public static GCloudAsyncRunnerFactory.Builder factoryBuilder() {
+        return GCloudAsyncRunnerFactory.forMavenProject();
+    }
+
     @Override
     protected synchronized void before() throws Throwable {
         checkState(asyncRunner == null, "async runner already created");

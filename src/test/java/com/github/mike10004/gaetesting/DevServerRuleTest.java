@@ -75,7 +75,7 @@ public class DevServerRuleTest {
                 .withCloudSdkDetector(cloudSdkDetector)
                 .withHost(HostAndPort.fromParts("localhost", devServerPort))
                 .withAdminHost(HostAndPort.fromParts("localhost", adminHostPort))
-                .build();
+                .factory();
         DevServerRule rule = new DevServerRule(factory);
         rule.before();
         try {
