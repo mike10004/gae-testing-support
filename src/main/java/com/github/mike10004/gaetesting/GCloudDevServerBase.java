@@ -8,6 +8,7 @@ import com.google.common.base.Supplier;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -172,7 +173,7 @@ public abstract class GCloudDevServerBase extends GCloudBase {
      *
      * <code>@parameter</code>
      */
-    private List<String> jvm_flag;
+    private List<String> jvm_flag = new ArrayList<>(Arrays.asList("-Dappengine.user.timezone=UTC"));
 
     /**
      * default Google Cloud Storage bucket name (default: None)
