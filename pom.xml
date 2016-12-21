@@ -6,7 +6,7 @@
 
     <groupId>com.github.mike10004</groupId>
     <artifactId>gae-testing-support</artifactId>
-    <version>0.2</version>
+    <version>0.3</version>
     <name>gae-testing-support</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
