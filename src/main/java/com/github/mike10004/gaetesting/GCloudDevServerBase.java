@@ -21,8 +21,8 @@ import java.util.List;
 @SuppressWarnings("unused")
 public abstract class GCloudDevServerBase extends GCloudBase {
 
-    public GCloudDevServerBase(String application_directory, String staging_directory, String javaVersion, Supplier<String> cloudSdkResolver, AppEngineSdkResolver appengineSdkResolver) {
-        super(application_directory, staging_directory, javaVersion, cloudSdkResolver, appengineSdkResolver);
+    public GCloudDevServerBase(String application_directory, String staging_directory, String javaVersion, Supplier<String> cloudSdkDetector, AppEngineSdkResolver appengineSdkResolver) {
+        super(application_directory, staging_directory, javaVersion, cloudSdkDetector, appengineSdkResolver);
     }
 
     /**

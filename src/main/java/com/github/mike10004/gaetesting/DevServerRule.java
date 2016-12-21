@@ -19,25 +19,22 @@ public class DevServerRule extends ExternalResource {
 
     private static final Logger log = LoggerFactory.getLogger(DevServerRule.class);
 
-    private final File applicationDirectory;
-    private final File stagingDirectory;
-    private final String javaVersion;
-    private final Supplier<String> cloudSdkDetector;
+    private final GCloudAsyncRunnerFactory asyncRunnerFactory;
     private GCloudAsyncRunner asyncRunner;
-    private AppEngineSdkResolver appengineSdkResolver;
 
     public DevServerRule(File applicationDirectory, File stagingDirectory, String javaVersion, Supplier<String> cloudSdkDetector, AppEngineSdkResolver appengineSdkResolver) {
-        this.applicationDirectory = checkNotNull(applicationDirectory);
-        this.stagingDirectory = checkNotNull(stagingDirectory);
-        this.javaVersion = checkNotNull(javaVersion);
-        this.cloudSdkDetector = checkNotNull(cloudSdkDetector);
-        this.appengineSdkResolver = checkNotNull(appengineSdkResolver, "appengineSdkResolver");
+        this(GCloudAsyncRunnerFactory.predefined(applicationDirectory, stagingDirectory, javaVersion, cloudSdkDetector, appengineSdkResolver));
+    }
+
+    public DevServerRule(GCloudAsyncRunnerFactory asyncRunnerFactory) {
+        super();
+        this.asyncRunnerFactory = checkNotNull(asyncRunnerFactory, "asyncRunnerFactory");
     }
 
     @Override
     protected synchronized void before() throws Throwable {
         checkState(asyncRunner == null, "async runner already created");
-        asyncRunner = new GCloudAsyncRunner(applicationDirectory.getAbsolutePath(), stagingDirectory.getAbsolutePath(), javaVersion, cloudSdkDetector, appengineSdkResolver);
+        asyncRunner = asyncRunnerFactory.createRunner();
         configureAsyncRunner(asyncRunner);
         asyncRunner.execute();
     }

@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class DownloadingSdkResolver extends AppEngineSdkResolver {
+class DownloadingSdkResolver extends SystemSdkResolver {
 
     public static final ImmutableMap<String, String> APP_ENGINE_SDK_ZIP_SHA256SUMS = ImmutableMap.of(
             "1.9.38", "189ec08943f6d09e4a30c6f86382a9d15b61226f042ee4b7c066b2466fd980c4",

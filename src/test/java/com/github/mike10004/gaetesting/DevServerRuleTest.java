@@ -77,7 +77,7 @@ public class DevServerRuleTest {
         checkState(new File(cloudSdkDetector.get()).isDirectory(), "not a directory: %s", cloudSdkDetector.get());
         File applicationDirectory = findApplicationDirectory(unpackedProjectDir).toFile();
         File stagingDirectory = suggestStagingDirectory(unpackedProjectDir).toFile();
-        AppEngineSdkResolver appengineSdkResolver = AppEngineSdkResolver.systemHttpClientResolver(AppEngineSdkResolver.OPTIMAL_VERSION);
+        AppEngineSdkResolver appengineSdkResolver = AppEngineSdkResolver.systemHttpClientResolver(SystemSdkResolver.OPTIMAL_VERSION);
         DevServerRule rule = new DevServerRule(applicationDirectory, stagingDirectory,
                 JAVA_VERSION, cloudSdkDetector, appengineSdkResolver);
         rule.before();
