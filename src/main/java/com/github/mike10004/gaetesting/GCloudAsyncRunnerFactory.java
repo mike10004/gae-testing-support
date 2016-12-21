@@ -7,9 +7,11 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.net.HostAndPort;
 import org.junit.rules.TemporaryFolder;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,13 +76,27 @@ public abstract class GCloudAsyncRunnerFactory {
         return new Builder(applicationDirectorySupplier);
     }
 
+    private static final Supplier<File> systemTempStagingDirectorySupplier = new Supplier<File>() {
+        @Override
+        public File get() {
+            try {
+                Path path = java.nio.file.Files.createTempDirectory("appengine-staging");
+                LoggerFactory.getLogger(GCloudAsyncRunnerFactory.class)
+                        .warn("staging in directory that will not be automatically cleaned up: {}", path);
+                return path.toFile();
+            } catch (IOException e) {
+                throw new GCloudExecutionException(e);
+            }
+        }
+    };
+
     @SuppressWarnings("unused")
     public static class Builder {
 
         private final Supplier<File> applicationDirectorySupplier;
-        private Supplier<File> stagingDirectorySupplier;
+        private Supplier<File> stagingDirectorySupplier = systemTempStagingDirectorySupplier;
         private String javaVersion = DEFAULT_JAVA_VERSION;
-        private Supplier<String> cloudSdkDetector = GCloudBase.defaultCloudSdkLocationSupplier;
+        private Supplier<String> cloudSdkDetector;
         private AppEngineSdkResolver appengineSdkResolver;
         private List<Configurator> configurators = new ArrayList<>();
 
@@ -113,6 +129,9 @@ public abstract class GCloudAsyncRunnerFactory {
         };
 
         private GCloudAsyncRunnerFactory makeFactory() {
+            if (cloudSdkDetector == null) {
+                cloudSdkDetector = GCloudBase.defaultCloudSdkLocationSupplier;
+            }
             if (appengineSdkResolver == null) {
                 appengineSdkResolver = AppEngineSdkResolver.systemHttpClientResolver(getAppEngineTargetVersion());
             }
