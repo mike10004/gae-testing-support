@@ -1,7 +1,9 @@
 package com.github.mike10004.gaetesting;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.net.HostAndPort;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
@@ -17,33 +19,78 @@ public abstract class GCloudAsyncRunnerFactory {
     public abstract GCloudAsyncRunner createRunner() throws IOException;
 
     public static GCloudAsyncRunnerFactory predefined(File applicationDirectory, File stagingDirectory, String javaVersion, Supplier<String> cloudSdkDetector, AppEngineSdkResolver appengineSdkResolver) {
-        return new PredefinedFactory(applicationDirectory, Suppliers.ofInstance(stagingDirectory), javaVersion, cloudSdkDetector, appengineSdkResolver);
+        return new PredefinedFactory(Suppliers.ofInstance(checkNotNull(applicationDirectory)),
+                Suppliers.ofInstance(checkNotNull(stagingDirectory)),
+                javaVersion, cloudSdkDetector, appengineSdkResolver);
+    }
+
+    protected static class MavenFinalNameGuessingApplicationDirectorySupplier implements Supplier<File> {
+
+        private final File projectBuildDirectory;
+        private final String artifactId;
+        private final String version;
+
+        public MavenFinalNameGuessingApplicationDirectorySupplier(File projectBuildDirectory, String artifactId, String version) {
+            this.projectBuildDirectory = projectBuildDirectory;
+            this.artifactId = artifactId;
+            this.version = version;
+        }
+
+        @Override
+        public File get() {
+            return new File(projectBuildDirectory, String.format("%s-%s", artifactId, version));
+        }
+    }
+
+    public static Builder forMavenProject() {
+        return forMavenProject(resolvePomFile());
+    }
+
+    protected static File resolvePomFile() {
+        File cwd = new File(System.getProperty("user.dir"));
+        return new File(cwd, "pom.xml");
+    }
+
+    public static Builder forMavenProject(String artifactId, String version, File projectBuildDirectory) {
+        return builder(new MavenFinalNameGuessingApplicationDirectorySupplier(projectBuildDirectory, artifactId, version));
+    }
+
+    public static Builder forMavenProject(File mavenPomFile) {
+        checkNotNull(mavenPomFile, "pom");
+        checkArgument(mavenPomFile.isFile(), "file not found: %s", mavenPomFile);
+        return builder(new MavenPomReadingApplicationDirectorySupplier(mavenPomFile, Charsets.UTF_8));
     }
 
     public static Builder builder(File applicationDirectory) {
+        checkNotNull(applicationDirectory);
         checkArgument(applicationDirectory.isDirectory(), "not a directory: %s", applicationDirectory);
-        return new Builder(applicationDirectory);
+        return builder(Suppliers.ofInstance(applicationDirectory));
+    }
+
+    protected static Builder builder(Supplier<File> applicationDirectorySupplier) {
+        checkNotNull(applicationDirectorySupplier);
+        return new Builder(applicationDirectorySupplier);
     }
 
     @SuppressWarnings("unused")
     public static class Builder {
 
-        private final File applicationDirectory;
+        private final Supplier<File> applicationDirectorySupplier;
         private Supplier<File> stagingDirectorySupplier;
         private String javaVersion = DEFAULT_JAVA_VERSION;
         private Supplier<String> cloudSdkDetector = GCloudBase.defaultCloudSdkLocationSupplier;
         private AppEngineSdkResolver appengineSdkResolver;
-        private List<Configurator> configurators = new ArrayList<Configurator>();
+        private List<Configurator> configurators = new ArrayList<>();
 
-        protected Builder(File applicationDirectory) {
-            this.applicationDirectory = checkNotNull(applicationDirectory);
+        protected Builder(Supplier<File> applicationDirectorySupplier) {
+            this.applicationDirectorySupplier = checkNotNull(applicationDirectorySupplier);
         }
 
         public GCloudAsyncRunnerFactory build() {
             if (appengineSdkResolver == null) {
                 appengineSdkResolver = AppEngineSdkResolver.systemHttpClientResolver(getAppEngineTargetVersion());
             }
-            return new PredefinedFactory(applicationDirectory, stagingDirectorySupplier, javaVersion, cloudSdkDetector, appengineSdkResolver) {
+            return new PredefinedFactory(applicationDirectorySupplier, stagingDirectorySupplier, javaVersion, cloudSdkDetector, appengineSdkResolver) {
                 @Override
                 public GCloudAsyncRunner createRunner() {
                     GCloudAsyncRunner instance = super.createRunner();
@@ -117,6 +164,24 @@ public abstract class GCloudAsyncRunnerFactory {
                 }
             });
         }
+
+        public Builder withHost(final HostAndPort host) {
+            return configuredBy(new Configurator() {
+                @Override
+                public void configure(GCloudAsyncRunner instance) {
+                    instance.setHost(host.toString());
+                }
+            });
+        }
+
+        public Builder withAdminHost(final HostAndPort adminHost) {
+            return configuredBy(new Configurator() {
+                @Override
+                public void configure(GCloudAsyncRunner instance) {
+                    instance.setAdmin_host(adminHost.toString());
+                }
+            });
+        }
     }
 
     private static final Configurator inactiveConfigurator = new Configurator() {
@@ -131,14 +196,14 @@ public abstract class GCloudAsyncRunnerFactory {
 
     protected static class PredefinedFactory extends GCloudAsyncRunnerFactory {
 
-        private final File applicationDirectory;
+        private final Supplier<File> applicationDirectorySupplier;
         private final Supplier<File> stagingDirectorySupplier;
         private final String javaVersion;
         private final Supplier<String> cloudSdkDetector;
         private final AppEngineSdkResolver appengineSdkResolver;
 
-        public PredefinedFactory(File applicationDirectory, Supplier<File> stagingDirectorySupplier, String javaVersion, Supplier<String> cloudSdkDetector, AppEngineSdkResolver appengineSdkResolver) {
-            this.applicationDirectory = checkNotNull(applicationDirectory);
+        public PredefinedFactory(Supplier<File> applicationDirectorySupplier, Supplier<File> stagingDirectorySupplier, String javaVersion, Supplier<String> cloudSdkDetector, AppEngineSdkResolver appengineSdkResolver) {
+            this.applicationDirectorySupplier = checkNotNull(applicationDirectorySupplier);
             this.stagingDirectorySupplier = checkNotNull(stagingDirectorySupplier);
             this.javaVersion = checkNotNull(javaVersion);
             this.cloudSdkDetector = checkNotNull(cloudSdkDetector);
@@ -147,7 +212,7 @@ public abstract class GCloudAsyncRunnerFactory {
 
         @Override
         public GCloudAsyncRunner createRunner() {
-            return new GCloudAsyncRunner(applicationDirectory.getAbsolutePath(), stagingDirectorySupplier.get().getAbsolutePath(), javaVersion, cloudSdkDetector, appengineSdkResolver);
+            return new GCloudAsyncRunner(applicationDirectorySupplier.get().getAbsolutePath(), stagingDirectorySupplier.get().getAbsolutePath(), javaVersion, cloudSdkDetector, appengineSdkResolver);
         }
     }
 }

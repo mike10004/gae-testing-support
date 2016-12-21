@@ -1,8 +1,10 @@
 package com.github.mike10004.gaetesting;
 
+import com.github.mike10004.gaetesting.GCloudAsyncRunnerFactory.Configurator;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.io.Files;
+import com.google.common.net.HostAndPort;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -53,33 +55,28 @@ public class DevServerRuleTest {
         return destParent.toPath().resolve("helloworld");
     }
 
-    private Path findApplicationDirectory(Path unpackedProjectDir) {
-        return unpackedProjectDir.resolve("target").resolve("appengine-helloworld-1.0-SNAPSHOT");
-    }
-
-    private Path suggestStagingDirectory(Path unpackedProjectDir) {
-        return unpackedProjectDir.resolve("target").resolve("appengine-staging");
-    }
-
-    private static final String JAVA_VERSION = "1.7";
-
     @Test
     public void startAndStopServer() throws Throwable {
+        final int devServerPort = Integer.parseInt(System.getProperty("dev.server.port"));
+        final int adminHostPort = Integer.parseInt(System.getProperty("dev.admin.port"));
         Path unpackedProjectDir = unpackSampleProject();
-//        int devServerPort = Integer.parseInt(System.getProperty("dev.server.port"));
         Supplier<String> cloudSdkDetector = new Supplier<String>(){
             @Override
             public String get() {
-                String path = System.getProperty("httprequestecho.gcloud.gcloud_directory");
+                String path = System.getProperty("gae-testing-support.gcloud.gcloud_directory");
                 return Optional.fromNullable(path).or(GCloudBase.defaultCloudSdkLocationSupplier);
             }
         };
         checkState(new File(cloudSdkDetector.get()).isDirectory(), "not a directory: %s", cloudSdkDetector.get());
-        File applicationDirectory = findApplicationDirectory(unpackedProjectDir).toFile();
-        File stagingDirectory = suggestStagingDirectory(unpackedProjectDir).toFile();
         AppEngineSdkResolver appengineSdkResolver = AppEngineSdkResolver.systemHttpClientResolver(SystemSdkResolver.OPTIMAL_VERSION);
-        DevServerRule rule = new DevServerRule(applicationDirectory, stagingDirectory,
-                JAVA_VERSION, cloudSdkDetector, appengineSdkResolver);
+        GCloudAsyncRunnerFactory factory = GCloudAsyncRunnerFactory.forMavenProject(unpackedProjectDir.resolve("pom.xml").toFile())
+                .stagingInNewFolder(temporaryFolder)
+                .withAppengineSdkResolver(appengineSdkResolver)
+                .withCloudSdkDetector(cloudSdkDetector)
+                .withHost(HostAndPort.fromParts("localhost", devServerPort))
+                .withAdminHost(HostAndPort.fromParts("localhost", adminHostPort))
+                .build();
+        DevServerRule rule = new DevServerRule(factory);
         rule.before();
         try {
             URI uri = URI.create("http://" + rule.getHost() + "/");

@@ -10,7 +10,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <httprequestecho.gcloud.gcloud_directory>/usr/local/share/google/google-cloud-sdk</httprequestecho.gcloud.gcloud_directory>
+        <gae-testing-support.gcloud.gcloud_directory>/usr/local/share/google/google-cloud-sdk</gae-testing-support.gcloud.gcloud_directory>
         <appengine.target.version>1.9.44</appengine.target.version>
     </properties>
     <build>
@@ -25,25 +25,20 @@
                     </configuration>
                 </plugin>
                 <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>1.12</version>
+                </plugin>
+                <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>2.19.1</version>
                     <configuration>
                         <systemPropertyVariables>
                             <dev.server.port>${dev.server.port}</dev.server.port>
                             <dev.admin.port>${dev.admin.port}</dev.admin.port>
-                            <httprequestecho.gcloud.gcloud_directory>${httprequestecho.gcloud.gcloud_directory}</httprequestecho.gcloud.gcloud_directory>
-                            <!--<java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties</java.util.logging.config.file>-->
+                            <gae-testing-support.gcloud.gcloud_directory>${gae-testing-support.gcloud.gcloud_directory}</gae-testing-support.gcloud.gcloud_directory>
                         </systemPropertyVariables>
                     </configuration>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>2.19.1</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>build-helper-maven-plugin</artifactId>
-                    <version>1.10</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -54,6 +49,7 @@
                 <executions>
                     <execution>
                         <id>reserve-dev-server-port</id>
+                        <phase>process-test-classes</phase>
                         <goals>
                             <goal>reserve-network-port</goal>
                         </goals>
@@ -120,6 +116,11 @@
             <artifactId>slf4j-jdk14</artifactId>
             <version>1.7.12</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.10.1</version>
         </dependency>
     </dependencies>
 </project>
