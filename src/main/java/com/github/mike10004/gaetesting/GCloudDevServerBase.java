@@ -1,19 +1,12 @@
-/**
+/*
  * Copyright 2014 Google Inc. All Rights Reserved.
  */
 package com.github.mike10004.gaetesting;
 
 import com.google.common.base.Supplier;
-import com.google.common.base.Throwables;
-import com.google.common.io.ByteStreams;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,9 +19,9 @@ import java.util.List;
  * @threadSafe false
  */
 @SuppressWarnings("unused")
-public class ExposedGCloudAppRun extends LimitedGCloudMojo {
+public abstract class GCloudDevServerBase extends GCloudBase {
 
-    public ExposedGCloudAppRun(String application_directory, String staging_directory, String javaVersion, Supplier<String> cloudSdkResolver, ExplicitSdkResolver appengineSdkResolver) {
+    public GCloudDevServerBase(String application_directory, String staging_directory, String javaVersion, Supplier<String> cloudSdkResolver, AppEngineSdkResolver appengineSdkResolver) {
         super(application_directory, staging_directory, javaVersion, cloudSdkResolver, appengineSdkResolver);
     }
 
@@ -271,34 +264,19 @@ public class ExposedGCloudAppRun extends LimitedGCloudMojo {
 
     private String custom_entrypoint;
 
-    protected File checkApplicationDirectoryIsValid() throws MojoExecutionException {
+    protected File checkApplicationDirectoryIsValid() throws GCloudExecutionException {
         File appDirFile = new File(application_directory);
         if (!appDirFile.exists()) {
-            throw new MojoExecutionException("The application directory does not exist : " + application_directory);
+            throw new GCloudExecutionException("The application directory does not exist : " + application_directory);
         }
         if (!appDirFile.isDirectory()) {
-            throw new MojoExecutionException("The application directory is not a directory : " + application_directory);
+            throw new GCloudExecutionException("The application directory is not a directory : " + application_directory);
         }
         return appDirFile;
     }
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
-        getLog().info("");
-        File appDirFile = checkApplicationDirectoryIsValid();
-        //Just before starting, just to make sure, shut down any running devserver on this port.
-        stopDevAppServer();
-        try {
-            ArrayList<String> devAppServerCommand = getCommand(application_directory);
-            startCommand(appDirFile, devAppServerCommand, WaitDirective.WAIT_SERVER_STOPPED);
-        } catch (Exception ex) {
-            getLog().error(ex);
-            throw new MojoExecutionException("Execution error: " + ex);
-        }
-    }
-
-    @Override
-    protected ArrayList<String> getCommand(String appDir) throws MojoExecutionException {
+    protected ArrayList<String> getCommand(String appDir) throws GCloudExecutionException, IOException {
 
         getLog().info("Running gcloud app run...");
 
@@ -469,35 +447,6 @@ public class ExposedGCloudAppRun extends LimitedGCloudMojo {
             devAppServerCommand.add("--runtime=" + runtime);
         }
         return devAppServerCommand;
-    }
-
-    protected void stopDevAppServer() throws MojoExecutionException {
-        HttpURLConnection connection;
-        try {
-            String ad = "localhost";
-            if (host != null) {
-                String[] parts = host.split(":");
-                ad = parts[0];
-            }
-            URL url = new URL("http", ad, 8000, "/quit");
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setDoOutput(true);
-            connection.setDoInput(true);
-            connection.setRequestMethod("GET");
-            ByteStreams.toByteArray(connection.getInputStream());
-            connection.setReadTimeout(4000);
-            connection.disconnect();
-
-            getLog().info("Shutting down Cloud SDK Server on port " + 8000
-                    + " and waiting 4 seconds...");
-            Thread.sleep(4000);
-        } catch (MalformedURLException e) {
-            throw new MojoExecutionException("URL malformed attempting to stop the devserver : " + e.getMessage());
-        } catch (IOException e) {
-            getLog().debug("Was not able to contact the devappserver to shut it down.  Most likely this is due to it simply not running anymore. ", e);
-        } catch (InterruptedException e) {
-            Throwables.propagate(e);
-        }
     }
 
     public void setApi_host(String api_host) {

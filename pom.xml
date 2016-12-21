@@ -27,6 +27,14 @@
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>2.19.1</version>
+                    <configuration>
+                        <systemPropertyVariables>
+                            <dev.server.port>${dev.server.port}</dev.server.port>
+                            <dev.admin.port>${dev.admin.port}</dev.admin.port>
+                            <httprequestecho.gcloud.gcloud_directory>${httprequestecho.gcloud.gcloud_directory}</httprequestecho.gcloud.gcloud_directory>
+                            <!--<java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties</java.util.logging.config.file>-->
+                        </systemPropertyVariables>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-failsafe-plugin</artifactId>
@@ -58,31 +66,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <configuration>
-                    <systemPropertyVariables>
-                        <dev.server.port>${dev.server.port}</dev.server.port>
-                        <dev.admin.port>${dev.admin.port}</dev.admin.port>
-                        <httprequestecho.gcloud.gcloud_directory>${httprequestecho.gcloud.gcloud_directory}</httprequestecho.gcloud.gcloud_directory>
-                        <!--<java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties</java.util.logging.config.file>-->
-                    </systemPropertyVariables>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>integration-test</id>
-                        <goals>
-                            <goal>integration-test</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>verify</id>
-                        <goals>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
     <dependencies>
@@ -90,11 +73,6 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-plugin-api</artifactId>
-            <version>3.3.9</version>
         </dependency>
         <dependency>
             <groupId>org.ini4j</groupId>
@@ -131,6 +109,11 @@
             <artifactId>wiremock</artifactId>
             <version>1.58</version> <!-- can't upgrade version because newer WireMock uses Jetty 9 and GAE uses Jetty 6 -->
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.12</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

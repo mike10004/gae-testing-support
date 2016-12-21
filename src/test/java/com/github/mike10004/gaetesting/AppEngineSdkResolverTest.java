@@ -1,6 +1,6 @@
 package com.github.mike10004.gaetesting;
 
-import com.github.mike10004.gaetesting.ExplicitSdkResolver.DownloadProgressListener;
+import com.github.mike10004.gaetesting.AppEngineSdkResolver.DownloadProgressListener;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -38,9 +38,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("AppEngineForbiddenCode")
-public class ExplicitSdkResolverTest {
+public class AppEngineSdkResolverTest {
 
-    private static final String SDK_VERSION = ExplicitSdkResolver.OPTIMAL_VERSION;
+    private static final String SDK_VERSION = AppEngineSdkResolver.OPTIMAL_VERSION;
 
     @Rule
     public TemporaryFolder tmp = new TemporaryFolder();
@@ -48,7 +48,7 @@ public class ExplicitSdkResolverTest {
     @Test
     public void buildUrl_extension() {
         File localMavenRepo = tmp.getRoot();
-        URI url = ExplicitSdkResolver.buildArtifactUrl(SDK_VERSION, localMavenRepo);
+        URI url = AppEngineSdkResolver.buildArtifactUrl(SDK_VERSION, localMavenRepo);
         System.out.format("url: %s%n", url);
         assertTrue("url ends in .zip", url.toString().endsWith(".zip"));
     }
@@ -70,8 +70,8 @@ public class ExplicitSdkResolverTest {
     public void resolve_remote() throws Exception {
         System.out.println("resolve_remote");
         String sdkVersion = SDK_VERSION;
-        String expectedPath = "/maven2/" + ExplicitSdkResolver.repoRelativePath(sdkVersion)
-                + "/" + ExplicitSdkResolver.formatFilename(sdkVersion);
+        String expectedPath = "/maven2/" + AppEngineSdkResolver.repoRelativePath(sdkVersion)
+                + "/" + AppEngineSdkResolver.formatFilename(sdkVersion);
         System.out.format("expected URL path: %s%n", expectedPath);
         URL zip = getFakeZipResource();
         File sourceZipFile = new File(zip.toURI());
@@ -89,7 +89,7 @@ public class ExplicitSdkResolverTest {
                     .withBody(fakeZipBytes)));
         server.start();
         try {
-            ExplicitSdkResolver resolver = new TestResolver() {
+            AppEngineSdkResolver resolver = new TestResolver() {
                 @Override
                 protected File downloadRemoteFile(URI uri, File downloadDirectory) throws IOException {
                     URI localhostUrl = swapSchemeAndHost(uri, "http", HostAndPort.fromParts("localhost", server.port()));
@@ -132,15 +132,15 @@ public class ExplicitSdkResolverTest {
     public void resolve_local() throws Exception {
         final File localMavenRepo = tmp.newFolder();
         String sdkVersion = SDK_VERSION;
-        String relativeDir = ExplicitSdkResolver.repoRelativePath(sdkVersion);
-        String filename = ExplicitSdkResolver.formatFilename(sdkVersion);
+        String relativeDir = AppEngineSdkResolver.repoRelativePath(sdkVersion);
+        String filename = AppEngineSdkResolver.formatFilename(sdkVersion);
         File file = localMavenRepo.toPath().resolve(relativeDir).resolve(filename).toFile();
         Files.createParentDirs(file);
         URL zipResource = getFakeZipResource();
         Resources.asByteSource(zipResource)
                 .copyTo(Files.asByteSink(file));
         System.out.format("created: %s%n", file);
-        ExplicitSdkResolver sdkResolver = new ExplicitSdkResolver(sdkVersion) {
+        AppEngineSdkResolver sdkResolver = new AppEngineSdkResolver(sdkVersion) {
             @Override
             protected File downloadRemoteFile(URI uri, File downloadDestination) throws IOException {
                 throw new IOException("illegal state");
@@ -164,24 +164,24 @@ public class ExplicitSdkResolverTest {
     @Test
     public void buildUrl_local() throws Exception {
         File localMavenRepo = tmp.newFolder();
-        String relativeDir = ExplicitSdkResolver.repoRelativePath(SDK_VERSION);
-        String filename = ExplicitSdkResolver.formatFilename(SDK_VERSION);
+        String relativeDir = AppEngineSdkResolver.repoRelativePath(SDK_VERSION);
+        String filename = AppEngineSdkResolver.formatFilename(SDK_VERSION);
         File file = localMavenRepo.toPath().resolve(relativeDir).resolve(filename).toFile();
         Files.createParentDirs(file);
         System.out.format("touch: %s%n", file);
         Files.touch(file);
-        URI url = ExplicitSdkResolver.buildArtifactUrl(SDK_VERSION, localMavenRepo);
+        URI url = AppEngineSdkResolver.buildArtifactUrl(SDK_VERSION, localMavenRepo);
         System.out.format("url: %s%n", url);
         assertEquals("scheme", "file", url.getScheme());
     }
 
     @Test
     public void getLocalMavenRepoPath() {
-        File dir = ExplicitSdkResolver.systemHttpClientResolver(SDK_VERSION).getLocalMavenRepoPath();
+        File dir = AppEngineSdkResolver.systemHttpClientResolver(SDK_VERSION).getLocalMavenRepoPath();
         assertTrue("exists: " + dir, dir.isDirectory());
     }
 
-    private class TestResolver extends ExplicitSdkResolver.DownloadingResolver {
+    private class TestResolver extends DownloadingSdkResolver {
 
         private final File localMavenRepoDir;
         private File tempDir;

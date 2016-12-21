@@ -27,7 +27,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static org.junit.Assert.*;
 
 
-public class DevServerMojoRuleIT {
+public class DevServerRuleTest {
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -71,14 +71,14 @@ public class DevServerMojoRuleIT {
             @Override
             public String get() {
                 String path = System.getProperty("httprequestecho.gcloud.gcloud_directory");
-                return Optional.fromNullable(path).or(LimitedGCloudMojo.defaultCloudSdkLocationSupplier);
+                return Optional.fromNullable(path).or(GCloudBase.defaultCloudSdkLocationSupplier);
             }
         };
         checkState(new File(cloudSdkDetector.get()).isDirectory(), "not a directory: %s", cloudSdkDetector.get());
         File applicationDirectory = findApplicationDirectory(unpackedProjectDir).toFile();
         File stagingDirectory = suggestStagingDirectory(unpackedProjectDir).toFile();
-        ExplicitSdkResolver appengineSdkResolver = ExplicitSdkResolver.systemHttpClientResolver(ExplicitSdkResolver.OPTIMAL_VERSION);
-        DevServerMojoRule rule = new DevServerMojoRule(applicationDirectory, stagingDirectory,
+        AppEngineSdkResolver appengineSdkResolver = AppEngineSdkResolver.systemHttpClientResolver(AppEngineSdkResolver.OPTIMAL_VERSION);
+        DevServerRule rule = new DevServerRule(applicationDirectory, stagingDirectory,
                 JAVA_VERSION, cloudSdkDetector, appengineSdkResolver);
         rule.before();
         try {

@@ -1,3 +1,6 @@
+/*
+ * Copyright 2014 Google Inc. All Rights Reserved.
+ */
 package com.github.mike10004.gaetesting;
 
 import com.google.appengine.repackaged.com.google.common.io.Files;
@@ -11,19 +14,16 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
-import javax.validation.constraints.NotNull;
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.ini4j.Ini;
 
+import javax.validation.constraints.NotNull;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URL;
@@ -41,13 +41,13 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @SuppressWarnings({"AppEngineForbiddenCode", "unused"})
-public abstract class LimitedGCloudMojo extends AbstractMojo {
+public abstract class GCloudBase {
 
     public static final String DEFAULT_JAVA_VERSION = "1.7";
     private static final ImmutableSet<String> PERMITTED_JAVA_VERSIONS = ImmutableSet.of("1.7", "1.8", "1.9");
 
     private final Supplier<String> cloudSdkResolver;
-    private final ExplicitSdkResolver appengineSdkResolver;
+    private final AppEngineSdkResolver appengineSdkResolver;
 
     public static final Supplier<String> defaultCloudSdkLocationSupplier = new Supplier<String>() {
         @Override
@@ -56,7 +56,7 @@ public abstract class LimitedGCloudMojo extends AbstractMojo {
         }
     };
 
-    public LimitedGCloudMojo(String application_directory, String staging_directory, String javaVersion, Supplier<String> cloudSdkResolver, ExplicitSdkResolver appengineSdkResolver) {
+    public GCloudBase(String application_directory, String staging_directory, String javaVersion, Supplier<String> cloudSdkResolver, AppEngineSdkResolver appengineSdkResolver) {
         this.application_directory = checkNotNull(application_directory, "application_directory");
         this.staging_directory = checkNotNull(staging_directory, "staging_directory");
         this.javaVersion = checkNotNull(javaVersion, "javaVersion");
@@ -253,9 +253,9 @@ public abstract class LimitedGCloudMojo extends AbstractMojo {
      */
     protected String appengine_config_directory;
 
-    protected abstract ArrayList<String> getCommand(String appDir) throws MojoExecutionException;
+    protected abstract ArrayList<String> getCommand(String appDir) throws GCloudExecutionException, IOException;
 
-    protected ArrayList<String> setupInitialCommands(ArrayList<String> commands) throws MojoExecutionException {
+    protected ArrayList<String> setupInitialCommands(ArrayList<String> commands) throws GCloudExecutionException, IOException {
         String pythonLocation = Utils.getPythonExecutableLocation();
 
         commands.add(pythonLocation);
@@ -276,7 +276,7 @@ public abstract class LimitedGCloudMojo extends AbstractMojo {
             getLog().error("Cannot determine the default location of the Google Cloud SDK.");
             getLog().error("If you need to install the Google Cloud SDK, follow the instructions located at https://cloud.google.com/appengine/docs/java/managed-vms");
             getLog().error("You can then set it via <gcloud_directory> </gcloud_directory> in the pom.xml");
-            throw new MojoExecutionException("Unknown Google Cloud SDK location: " + gcloud_directory);
+            throw new GCloudExecutionException("Unknown Google Cloud SDK location: " + gcloud_directory);
         }
 
         if (deployCommand) {
@@ -323,7 +323,7 @@ public abstract class LimitedGCloudMojo extends AbstractMojo {
         WAIT_SERVER_STOPPED
     }
 
-    protected void startCommand(File appDirFile, ArrayList<String> devAppServerCommand, WaitDirective waitDirective) throws MojoExecutionException {
+    protected void startCommand(File appDirFile, ArrayList<String> devAppServerCommand, WaitDirective waitDirective) throws GCloudExecutionException, IOException {
         getLog().info("Running " + Joiner.on(" ").join(devAppServerCommand));
 
         Thread stdOutThread;
@@ -468,7 +468,7 @@ public abstract class LimitedGCloudMojo extends AbstractMojo {
                 int status = devServerProcess.exitValue();
                 if (status != 0) {
                     getLog().error("Error: gcloud app command with exit code : " + status);
-                    throw new MojoExecutionException("Error: gcloud app command exit code is: " + status);
+                    throw new GCloudExecutionException("Error: gcloud app command exit code is: " + status);
                 }
             } else if (waitDirective == WaitDirective.WAIT_SERVER_STARTED) {
                 waitStartedLatch.await();
@@ -476,13 +476,12 @@ public abstract class LimitedGCloudMojo extends AbstractMojo {
                 getLog().info("App Engine Dev Server started in Async mode and running.");
                 getLog().info("you can stop it with this command: mvn gcloud:run_stop");
             }
-        } catch (IOException e) {
-            throw new MojoExecutionException("Could not start the dev app server", e);
         } catch (InterruptedException e) {
+            throw new GCloudExecutionException(e);
         }
     }
 
-    protected String getApplicationDirectory() throws MojoExecutionException {
+    protected String getApplicationDirectory() {
         return application_directory;
     }
 
@@ -502,7 +501,7 @@ public abstract class LimitedGCloudMojo extends AbstractMojo {
         }
     }
 
-    protected String getAppId() throws MojoExecutionException {
+    protected String getAppId() throws FileNotFoundException {
 
         if (gcloud_project != null) {
             return gcloud_project;
@@ -549,7 +548,7 @@ public abstract class LimitedGCloudMojo extends AbstractMojo {
             AppEngineApplicationXmlReader reader
                     = new AppEngineApplicationXmlReader();
             AppEngineApplicationXml appEngineApplicationXml = reader.processXml(
-                    getInputStream(new File(appDir, "META-INF/appengine-application.xml")));
+                    new FileInputStream(new File(appDir, "META-INF/appengine-application.xml")));
             return appEngineApplicationXml.getApplicationId();
 
         }
@@ -560,15 +559,7 @@ public abstract class LimitedGCloudMojo extends AbstractMojo {
         }
     }
 
-    private static InputStream getInputStream(File file) {
-        try {
-            return new FileInputStream(file);
-        } catch (FileNotFoundException fnfe) {
-            throw new IllegalStateException("File should exist - '" + file + "'");
-        }
-    }
-
-    protected AppEngineWebXml getAppEngineWebXml(String webAppDir) throws MojoExecutionException {
+    protected AppEngineWebXml getAppEngineWebXml(String webAppDir) throws GCloudExecutionException {
         AppEngineWebXmlReader reader = new AppEngineWebXmlReader(webAppDir);
         AppEngineWebXml appengineWebXml = reader.readAppEngineWebXml();
         return appengineWebXml;
@@ -589,20 +580,9 @@ public abstract class LimitedGCloudMojo extends AbstractMojo {
         return FileUtils.getTempDirectory();
     }
 
-    protected void resolveAndSetSdkRoot() throws MojoExecutionException {
-
-        @SuppressWarnings("unchecked") File sdkBaseDir;
-        try {
-            sdkBaseDir = appengineSdkResolver.resolve(getDownloadCacheDirectory());
-        } catch (IOException e) {
-            throw new MojoExecutionException("failed to resolve appengine sdk", e);
-        }
-
-        try {
-            System.setProperty("appengine.sdk.root", sdkBaseDir.getCanonicalPath());
-        } catch (IOException e) {
-            throw new MojoExecutionException("Could not open SDK zip archive.", e);
-        }
+    protected void resolveAndSetSdkRoot() throws IOException {
+        File sdkBaseDir = appengineSdkResolver.resolve(getDownloadCacheDirectory());
+        System.setProperty("appengine.sdk.root", sdkBaseDir.getCanonicalPath());
     }
 
     /**
@@ -613,20 +593,18 @@ public abstract class LimitedGCloudMojo extends AbstractMojo {
         return javaVersion;
     }
 
-    protected void checkStagingDirectoryLocation(File destinationDir) throws MojoExecutionException {
+    protected void checkStagingDirectoryLocation(File destinationDir) throws IOException {
 
     }
 
     protected File executeAppCfgStagingCommand(String appDir)
-            throws MojoExecutionException {
+            throws IOException {
 
         ArrayList<String> arguments = new ArrayList<>();
         File destinationDir = new File(staging_directory);
         checkStagingDirectoryLocation(destinationDir);
-        try {
+        if (destinationDir.exists()) {
             FileUtils.deleteDirectory(destinationDir);
-        } catch (IOException ex) {
-            throw new MojoExecutionException("Cannot delete staging directory.", ex);
         }
 
         getLog().info("Creating staging directory in: " + destinationDir.getAbsolutePath());
@@ -641,16 +619,12 @@ public abstract class LimitedGCloudMojo extends AbstractMojo {
 
         if (!new File(appDirFile, ".appyamlgenerated").exists()) {
             PrintWriter out;
-            try {
-                out = new PrintWriter(new File(appDirFile, ".appyamlgenerated"));
-                DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-                Date date = new Date();
-                System.out.println(dateFormat.format(date));
-                out.println("generated by the Maven Plugin on " + dateFormat.format(date));
-                out.close();
-            } catch (FileNotFoundException ex) {
-                throw new MojoExecutionException("Error: generating .appyamlgenerated " + ex);
-            }
+            out = new PrintWriter(new File(appDirFile, ".appyamlgenerated"));
+            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            Date date = new Date();
+            System.out.println(dateFormat.format(date));
+            out.println("generated by the Maven Plugin on " + dateFormat.format(date));
+            out.close();
         }
 
         arguments.add("-A");
@@ -718,7 +692,7 @@ public abstract class LimitedGCloudMojo extends AbstractMojo {
 
         //config error: vm false
         if (isStandard && getJavaVersion().equals("1.8")) {
-            throw new MojoExecutionException("For now, Standard GAE runtime only works with Java7, but the pom.xml is targetting 1.8");
+            throw new GCloudExecutionException("For now, Standard GAE runtime only works with Java7, but the pom.xml is targetting 1.8");
         }
 
         // Forcing Java runtime for Flex or 1.8 , otherwise it is default Java7
@@ -751,19 +725,11 @@ public abstract class LimitedGCloudMojo extends AbstractMojo {
 
         File[] yamlFiles = new File(destinationDir, "/WEB-INF/appengine-generated").listFiles();
         for (File f : yamlFiles) {
-            try {
-                Files.copy(f, new File(appDir, f.getName()));
-            } catch (IOException ex) {
-                throw new MojoExecutionException("Error: copying yaml file " + ex);
-            }
+            Files.copy(f, new File(appDir, f.getName()));
         }
         File qs = new File(destinationDir, "/WEB-INF/quickstart-web.xml");
         if (qs.exists()) {
-            try {
-                Files.copy(qs, new File(appDir, "/WEB-INF/quickstart-web.xml"));
-            } catch (IOException ex) {
-                throw new MojoExecutionException("Error: copying WEB-INF/quickstart-web.xml" + ex);
-            }
+            Files.copy(qs, new File(appDir, "/WEB-INF/quickstart-web.xml"));
         }
         // Delete the xml as we have now the index.yaml equivalent
         File index = new File(appDir, "/WEB-INF/datastore-indexes.xml");
@@ -777,9 +743,10 @@ public abstract class LimitedGCloudMojo extends AbstractMojo {
      * Executes the gcloud components update app-engine-java command to install
      * the extra component needed for the Maven plugin.
      * @param pythonLocation
-     * @throws MojoExecutionException
+     * @throws IOException
+     * @throws GCloudExecutionException
      */
-    private void installJavaAppEngineComponent(String pythonLocation ) throws MojoExecutionException {
+    private void installJavaAppEngineComponent(String pythonLocation ) throws GCloudExecutionException, IOException {
         ArrayList<String> installCommand = new ArrayList<>();
         installCommand.add(pythonLocation);
         if (Utils.canDisableImportOfPythonModuleSite()) {
@@ -808,9 +775,20 @@ public abstract class LimitedGCloudMojo extends AbstractMojo {
             process.waitFor();
             getLog().info("Cloud SDK app-engine-java component installed.");
 
-        } catch (IOException | InterruptedException ex) {
-            throw new MojoExecutionException("Error: cannot execute gcloud command " + ex);
+        } catch (InterruptedException ex) {
+            throw new GCloudExecutionException("Error: cannot execute gcloud command " + ex);
         }
     }
 
+    private org.slf4j.Logger log;
+
+    protected org.slf4j.Logger getLog() {
+        org.slf4j.Logger log_ = log;
+        if (log_ == null) {
+            log = log_ = org.slf4j.LoggerFactory.getLogger(getClass());
+        }
+        return log_;
+    }
+
+    public abstract void execute() throws IOException;
 }
