@@ -6,6 +6,8 @@ import com.google.common.io.Files;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.InputStream;
+import java.util.Properties;
 
 import static org.junit.Assert.*;
 
@@ -18,9 +20,13 @@ public class MavenPomReadingApplicationDirectorySupplierTest {
         String text = Files.toString(pomFile, Charsets.UTF_8);
         MavenProjectInfo info = new MavenPomReadingApplicationDirectorySupplier(pomFile, Charsets.UTF_8).parsePom(text);
         System.out.format("parsed: %s%n", info);
-        assertEquals("target", new File(cwd, "target"), info.projectBuildDirectory);
-        assertEquals("artifactId", "gae-testing-support", info.artifactId);
-        assertEquals("version", "0.1-SNAPSHOT", info.version);
+        Properties p = new Properties();
+        try (InputStream in = getClass().getResourceAsStream("/gae-testing-support/maven.properties")) {
+            p.load(in);
+        }
+        assertEquals("target", new File(p.getProperty("project.build.directory")), info.projectBuildDirectory);
+        assertEquals("artifactId", p.getProperty("project.artifactId"), info.artifactId);
+        assertEquals("version", p.getProperty("project.version"), info.version);
     }
 
 }
